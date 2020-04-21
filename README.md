@@ -5,7 +5,7 @@ The below list of packages, are the dependencies we use in this API build. Ensur
 
 
 
-[packages]
+PACKAGES
 environs = "*"
 flask = "*"
 flask-sqlalchemy = "*"
