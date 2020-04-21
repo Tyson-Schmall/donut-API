@@ -33,27 +33,9 @@ class Admin(db.Model):
         self.quantity = quantity
 
 
-class User(db.Model):
-    __tablename__ = "Review"
-    id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(32), nullable=False)
-    password = db.Column(db.String(16), nullable=False)
-    rating = db.Column(db.String(24), nullable=False)
-    title = db.Column(db.String(24), nullable=False)
-    description = db.Column(db.String(144), nullable=False)
-
-    def __init__(self, email, password, rating, title, description):
-        self.email = email
-        self.password = password
-        self.rating = rating
-        self.title = title
-        self.description = description
-
-
 class AdminSchema(ma.Schema):
     class Meta:
         fields = ("id", "email", "password", "category", "name", "description", "quantity")
-
 
 
 admin_schema = AdminSchema()
@@ -64,6 +46,7 @@ def greeting():
     return "<h2>Welcome, to your local Donut Shop!</h2>"
 
 
+# Add ADMIN USER and add donut
 @app.route("/create_user", methods=["POST"])
 def create_user():
     email = request.json['email']
@@ -74,8 +57,30 @@ def create_user():
     quanity = request.json['quantity']
 
 
+# Add one donut as an ADMIN USER
+@app.route("/add_donut", methods=["POST"])
+def add_donut():
+    category = request.json['category']
+    name = request.json['name']
+    description = request.json['description']
+    quanity = request.json['quantity']
 
-@app.route("/display/<id>". methods=["GET"])
+    new_donut = Admin("category", "name", "description", "quantity")
+
+    db.session.add(new_donut)
+    db.session.commit()
+
+    donut = Admin.query.get(new_donut.id)
+    return profile_schema.jsonify(profile)
+
+
+# Add multiple donuts as an ADMIN USER
+@app.route("/add_donuts", methods=["POST"])
+def add_donuts():
+    category
+
+
+@app.route("/donut/<id>". methods=["GET"])
 def one_donut():
     donut = Admin.query.get(id)
     
@@ -84,7 +89,7 @@ def one_donut():
 
 
 
-@app.route("/display_all". methods=["GET"])
+@app.route("/all_donuts". methods=["GET"])
 def many_donuts():
     all_donuts = Admin.query.all()
     result = admins_schema.dump(all_donuts)
@@ -108,23 +113,39 @@ def delete_donut(id):
 
 
 
-class UserSchema(ma.Schema):
-    class Meta:
-        fields = ("id", "email", "password", "rating", "title", "description")
-
-
-
-user_schema = UserSchema()
-users_schema = UserSchema(many=True)
-
-
-
 if __name__ == "__main__":
     app.run(debug = True)
     app.run()
 
 
 
+
+# class User(db.Model):
+#     __tablename__ = "Review"
+#     id = db.Column(db.Integer, primary_key=True)
+#     email = db.Column(db.String(32), nullable=False)
+#     password = db.Column(db.String(16), nullable=False)
+#     rating = db.Column(db.String(24), nullable=False)
+#     title = db.Column(db.String(24), nullable=False)
+#     description = db.Column(db.String(144), nullable=False)
+
+#     def __init__(self, email, password, rating, title, description):
+#         self.email = email
+#         self.password = password
+#         self.rating = rating
+#         self.title = title
+#         self.description = description
+
+
+
+# class UserSchema(ma.Schema):
+    # class Meta:
+    #     fields = ("id", "email", "password", "rating", "title", "description")
+
+
+
+# user_schema = UserSchema()
+# users_schema = UserSchema(many=True)
 
 
 
