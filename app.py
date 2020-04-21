@@ -42,7 +42,7 @@ class User(db.Model):
     title = db.Column(db.String(24), nullable=False)
     description = db.Column(db.String(144), nullable=False)
 
-    def __init__(self, email, password, rating, title, description:
+    def __init__(self, email, password, rating, title, description):
         self.email = email
         self.password = password
         self.rating = rating
