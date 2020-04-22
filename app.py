@@ -68,7 +68,7 @@ def create_user():
     email = request.json['email']
     password = request.json['password']
     
-    new_admin = Admin("email", "password")
+    new_admin = Admin(emai, password)
 
     db.session.add(new_admin)
     db.session.commit()
@@ -85,7 +85,7 @@ def add_donut():
     description = request.json['description']
     quantity = request.json['quantity']
 
-    new_donut = Donut("category", "name", "description", "quantity")
+    new_donut = Donut(category, name, description, quantity)
 
     db.session.add(new_donut)
     db.session.commit()
