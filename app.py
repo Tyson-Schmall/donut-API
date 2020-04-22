@@ -6,16 +6,18 @@ from flask_heroku import Heroku
 import os
 
 app = Flask(__name__)
-
+heroku = Heroku(app)
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(basedir, "app.sqlite")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
+CORS(app)
+
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
 
-heroku = Heroku(app)
+
 
 class Admin(db.Model):
     __tablename__ = "Inventory"
