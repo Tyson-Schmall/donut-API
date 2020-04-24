@@ -10,11 +10,6 @@ from flask_migrate import Migrate, MigrateCommand
 import os
 
 
-
-
-
-
-
 app = Flask(__name__)
 heroku = Heroku(app)
 
