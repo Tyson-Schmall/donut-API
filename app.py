@@ -16,18 +16,21 @@ import os
 
 
 app = Flask(__name__)
+heroku = Heroku(app)
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(basedir, "app.sqlite")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
+CORS(app)
+
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
 
-migrate = Migrate(app, db)
-manager = Manager(app)
+# migrate = Migrate(app, db)
+# manager = Manager(app)
 
-manager.add_command('db', MigrateCommand)
+# manager.add_command('db', MigrateCommand)
 
 
 class Admin(db.Model):
@@ -35,14 +38,22 @@ class Admin(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(32), nullable=False)
     password = db.Column(db.String(16), nullable=False)
+
+
+    def __init__(self, email, password):
+        self.email = email
+        self.password = password
+
+
+class Donut(db.Model):
+    __tablename__ = "Donuts"
+    id = db.Column(db.Integer, primary_key=True)
     category = db.Column(db.String(16), nullable=False)
     name = db.Column(db.String(24), nullable=False)
     description = db.Column(db.String(144), nullable=False)
     quantity = db.Column(db.String(8), nullable=False)
 
-    def __init__(self, email, password, category, name, description, quantity):
-        self.email = email
-        self.password = password
+    def __init__(self, category, name, description, quantity):
         self.category = category
         self.name = name
         self.description = description
@@ -50,7 +61,12 @@ class Admin(db.Model):
 
 class AdminSchema(ma.Schema):
     class Meta:
-        fields = ("id", "email", "password", "category", "name", "description", "quantity")
+        fields = ("id", "email", "password")
+
+
+class DonutSchema(ma.Schema):
+    class Meta:
+        fields = ("id", "category", "name", "description", "quantity")
 
 
 admin_schema = AdminSchema()
@@ -66,7 +82,7 @@ class Donut(db.Model):
     img_url = db.Column(db.String(200), nullable=True)
 
 
-    def __init__(self, category, name, description, quantity,img_url):
+    def __init__(self, category, name, description, quantity, img_url):
         self.category = category
         self.name = name
         self.description = description
@@ -139,15 +155,29 @@ def many_donuts():
     return jsonify(result)
 
 
+# Route for MODIFYING a POST
+@app.route("/add_donut/<id>", methods=["PATCH"])
+def patch_donut(id):
+    donut = Donut.query.get(id)
+    
+    new_category = request.json["category"]
+    new_name = request.json["name"]
+    new_description = request.json["description"]
+    new_quantity = request.json["quantity"]
 
-# @app.route("/create_user", methods=["PATCH"])
-# def patch_post():
+    donut.category = new_category
+    donut.name = new_name
+    donut.description = new_description
+    donut.quantity = new_quantity
+
+    db.session.commit()
+    return donut_schema.jsonify(donut)
 
 
-
-@app.route('/display/<id>', methods=['DELETE'])
+# Route for DELETING a DONUT
+@app.route('/remove_donut/<id>', methods=["DELETE"])
 def delete_donut(id):
-    record = Admin.query.get(id)
+    record = Donut.query.get(id)
     db.session.delete(record)
     db.session.commit()
 
