@@ -3,7 +3,17 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_marshmallow import Marshmallow
 from flask_heroku import Heroku
+
+from flask_script import Manager
+from flask_migrate import Migrate, MigrateCommand
+
 import os
+
+
+
+
+
+
 
 app = Flask(__name__)
 
@@ -13,6 +23,12 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
+
+migrate = Migrate(app, db)
+manager = Manager(app)
+
+manager.add_command('db', MigrateCommand)
+
 
 class Admin(db.Model):
     __tablename__ = "Inventory"
@@ -32,7 +48,6 @@ class Admin(db.Model):
         self.description = description
         self.quantity = quantity
 
-
 class AdminSchema(ma.Schema):
     class Meta:
         fields = ("id", "email", "password", "category", "name", "description", "quantity")
@@ -40,6 +55,33 @@ class AdminSchema(ma.Schema):
 
 admin_schema = AdminSchema()
 admins_schema = AdminSchema(many=True)
+
+
+class Donut(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    category = db.Column(db.String(16), nullable=False)
+    name = db.Column(db.String(24), nullable=False)
+    description = db.Column(db.String(144), nullable=False)
+    quantity = db.Column(db.String(8), nullable=False)
+    img_url = db.Column(db.String(200), nullable=True)
+
+
+    def __init__(self, category, name, description, quantity,img_url):
+        self.category = category
+        self.name = name
+        self.description = description
+        self.quantity = quantity
+        self.img_url = img_url
+
+class DonutSchema(ma.Schema):
+    class Meta:
+        fields = ("id","category", "name", "description", "quantity", "img_url")
+
+donut_schema = DonutSchema()
+donuts_schema = DonutSchema(many=True)
+
+
+
 
 @app.route("/")
 def greeting():
@@ -54,7 +96,7 @@ def create_user():
     category = request.json['category']
     name = request.json['name']
     description = request.json['description']
-    quanity = request.json['quantity']
+    quantity = request.json['quantity']
 
 
 # Add one donut as an ADMIN USER
@@ -63,42 +105,43 @@ def add_donut():
     category = request.json['category']
     name = request.json['name']
     description = request.json['description']
-    quanity = request.json['quantity']
+    quantity = request.json['quantity']
+    img_url = request.json['img_url']
 
-    new_donut = Admin("category", "name", "description", "quantity")
+    new_donut = Donut(category, name, description, quantity, img_url)
 
     db.session.add(new_donut)
     db.session.commit()
 
-    donut = Admin.query.get(new_donut.id)
-    return profile_schema.jsonify(profile)
+    donut = Donut.query.get(new_donut.id)
+    return donut_schema.jsonify(donut)
 
 
-# Add multiple donuts as an ADMIN USER
-@app.route("/add_donuts", methods=["POST"])
-def add_donuts():
-    category
+# # Add multiple donuts as an ADMIN USER
+# @app.route("/add_donuts", methods=["POST"])
+# def add_donuts():
+#     category
 
 
-@app.route("/donut/<id>". methods=["GET"])
+@app.route("/donut/<id>", methods=["GET"])
 def one_donut():
-    donut = Admin.query.get(id)
+    donut = Donut.query.get(id)
     
-    result = admin_schema.dump(display)
+    result = donut_schema.dump(display)
     return jsonify(result)
 
 
 
-@app.route("/all_donuts". methods=["GET"])
+@app.route("/all_donuts", methods=["GET"])
 def many_donuts():
-    all_donuts = Admin.query.all()
-    result = admins_schema.dump(all_donuts)
+    all_donuts = Donut.query.all()
+    result = donuts_schema.dump(all_donuts)
     return jsonify(result)
 
 
 
-@app.route("/create_user", methods=["PATCH"])
-def patch_post():
+# @app.route("/create_user", methods=["PATCH"])
+# def patch_post():
 
 
 
@@ -110,11 +153,20 @@ def delete_donut(id):
 
     return jsonify('The selected donut has been deleted, you will need to create a new post if you wish to have it display again.')
 
+@app.route('/donut/<id>', methods=["PATCH"])
+def update_img(id):
+    donut = Donut.query.get(id)
 
+    new_img = request.json['img_url']
+
+    donut.img_url = new_img
+
+    db.session.commit()
+    return donut_schema.jsonify(donut)
 
 
 if __name__ == "__main__":
-    app.run(debug = True)
+    app.debug = True
     app.run()
 
 
@@ -151,3 +203,4 @@ if __name__ == "__main__":
 
     
     
+# https://scontent-den4-1.cdninstagram.com/v/t51.2885-15/sh0.08/e35/p750x750/22221334_120961335268425_8160340611455516672_n.jpg?_nc_ht=scontent-den4-1.cdninstagram.com&_nc_cat=109&_nc_ohc=oqWosOnkQ6kAX8yrvIb&oh=9549ec6c107f1d25a69471b7959d918d&oe=5ECBDB0B
